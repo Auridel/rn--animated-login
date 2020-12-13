@@ -1,30 +1,30 @@
 import React, {FC} from 'react';
 import {
-    View,
-    StyleSheet,
     Dimensions,
+    Platform,
+    StyleSheet,
     Text,
     TextInput,
-    Platform,
-    TouchableOpacity,
     TouchableNativeFeedback,
-    KeyboardAvoidingView
+    TouchableOpacity,
+    View
 } from "react-native";
 import Animated, {
-    block, Clock,
-    clockRunning,
+    block,
+    Clock,
+    clockRunning, concat,
     cond,
     Easing,
     eq,
     event,
     set,
-    startClock, stopClock,
+    startClock,
+    stopClock,
     timing,
     Value
 } from "react-native-reanimated";
-import {TapGestureHandler, State} from "react-native-gesture-handler";
+import {State, TapGestureHandler} from "react-native-gesture-handler";
 import Svg, {Circle, ClipPath, Image} from "react-native-svg";
-
 
 
 const {width, height} = Dimensions.get("window");
@@ -62,7 +62,7 @@ const runTiming = (clock: Clock, value: number, dest: number) => {
 const LoginScreen: FC = () => {
     const {interpolate, Extrapolate} = Animated;
 
-    const buttonOpacity = new Value(0);
+    const buttonOpacity = new Value(1);
 
     const buttonY = interpolate(buttonOpacity, {
         inputRange: [0, 1],
@@ -71,7 +71,7 @@ const LoginScreen: FC = () => {
     })
     const bgY = interpolate(buttonOpacity, {
         inputRange: [0, 1],
-        outputRange: [-height / 2, 0],
+        outputRange: [-(height / 1.5 ), 0],
         extrapolate: Extrapolate.CLAMP
     })
     const loginOpacity = interpolate(buttonOpacity, {
@@ -81,7 +81,17 @@ const LoginScreen: FC = () => {
     })
     const loginY = interpolate(buttonOpacity, {
         inputRange: [0, 1],
-        outputRange: [-20, -250],
+        outputRange: [-20, 250],
+        extrapolate: Extrapolate.CLAMP
+    })
+    const loginZ = interpolate(buttonOpacity, {
+        inputRange: [0, 1],
+        outputRange: [1, -2],
+        extrapolate: Extrapolate.CLAMP
+    })
+    const rotateClose = interpolate(buttonOpacity, {
+        inputRange: [0, 1],
+        outputRange: [180, 360],
         extrapolate: Extrapolate.CLAMP
     })
 
@@ -114,19 +124,29 @@ const LoginScreen: FC = () => {
                 transform: [{translateY: bgY}]
             }}>
                 <Svg width={width}
-                     height={height}
-                     style={styles.image}
+                     height={height + 150}
                 >
                     <ClipPath id="clip">
-                        <Circle r={height} cx={width / 2}/>
+                        <Circle r={height + 150} cx={width / 2}/>
                     </ClipPath>
                     <Image href={require("../../assets/main.jpg")}
                            width={width}
-                           height={height}
+                           height={height + 150}
                            clipPath="url(#clip)"
                            preserveAspectRatio="xMidYMid slice"
                     />
                 </Svg>
+                <TapGestureHandler onHandlerStateChange={onCloseGestureHandler}>
+                    <Animated.View style={{
+                        ...styles.closeWrapper,
+                        bottom: -20,
+                        transform: [{rotate: concat(rotateClose, "deg")}]
+                    }}>
+                        <Svg style={styles.close}>
+                            <Image href={require("../../assets/close.png")} height={15} width={15} />
+                        </Svg>
+                    </Animated.View>
+                </TapGestureHandler>
             </Animated.View>
             <View style={styles.loginWrap}>
                 <TapGestureHandler onHandlerStateChange={onHandlerChangeState}>
@@ -152,16 +172,10 @@ const LoginScreen: FC = () => {
                 </TapGestureHandler>
                 <Animated.View style={{
                                     ...styles.inputsWrapper,
+                                    zIndex: loginZ,
                                     opacity: loginOpacity,
                                     transform: [{translateY: loginY}]}}
                 >
-                    <TapGestureHandler onHandlerStateChange={onCloseGestureHandler}>
-                        <Animated.View style={styles.closeWrapper}>
-                            <Svg style={styles.close}>
-                                <Image href={require("../../assets/close.png")} height={15} width={15} />
-                            </Svg>
-                        </Animated.View>
-                    </TapGestureHandler>
                     <TextInput style={{
                             ...styles.input}}
                                placeholder="Enter your login"
@@ -201,12 +215,13 @@ const styles = StyleSheet.create({
     },
     imageContainer: {
         ...StyleSheet.absoluteFillObject,
-        // top: 20,
         zIndex: -1,
-        width: width + 100,
-        height: height + 200
+        width,
+        height: height + 150
     },
-    image: {},
+    image: {
+        resizeMode: "cover"
+    },
     button: {
         width: width * 0.7,
         paddingVertical: 20,
@@ -244,8 +259,8 @@ const styles = StyleSheet.create({
         textAlign: "center"
     },
     closeWrapper: {
-        ...StyleSheet.absoluteFillObject,
-        top: -40,
+        position: "absolute",
+        bottom: 0,
         left: width / 2 - 15,
         width: 30,
         height: 30,

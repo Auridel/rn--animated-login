@@ -6,7 +6,10 @@ import AppLoading from "expo-app-loading";
 import LoginScreen from "./src/screens/LoginScreen";
 
 async function cacheImages(){
-  const images: string[] | number[] = [require("./assets/main.jpg")];
+  const images: string[] | number[] = [
+      require("./assets/main.jpg"),
+    require("./assets/close.png")
+  ];
 
   const cacheImages: Promise<Asset>[] = images.map((image: string | number) => {
     return Asset.fromModule(image).downloadAsync();
